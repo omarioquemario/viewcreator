@@ -1,0 +1,86 @@
+body {
+    background-image: url('../img/mark-autumns-Ssr26I0QWVY-unsplash.jpg');
+    background-position: top;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+button {
+    cursor: pointer;
+    color:white;
+    background-color:#9e46ff;
+    font-weight:bolder;
+    width:20%;
+    height:7%;
+    min-height:40px;
+    font-size: large;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    margin-top: 30px;
+}
+
+h5 {
+    font-weight: normal;
+    text-align: left;
+    margin-top: 10%;
+    color: #8d8d8d;
+}
+
+.flow-item {
+    display: none;
+    margin: auto;
+    text-align:center;
+    width:90%;
+    padding:30px 0px 30px 0px;
+}
+
+.loading-animation {
+    width: 50px;
+    height: 50px;
+}
+
+#main {
+    background-color:#000000A0;
+    width:80%;
+    min-width: 600px;
+    min-height:300px;
+    position:relative;
+    margin:auto auto;
+    margin-top:9%;
+    color:white;
+    padding: 20px 50px 20px 50px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+#label-view-hash {
+    padding-top: 40px;
+    font-size:small;
+    color: #8d8d8d;
+}
+
+
+/* flow-initial */
+
+#inputbox-view-data {
+    width:100%;
+    min-height:300px;
+    background-color:transparent;
+    color:white;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.5em;
+    padding: 10px 21px 10px 21px;
+    tab-size: 2;
+}
+
+#button-publish {
+    width:30%;
+}
+
+
+/* flow-publish */
+
+#button-back {
+    margin-top:50px;
+    background-color: #4e4e4e;
+    margin-right:50px;
+}

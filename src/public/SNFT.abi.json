@@ -1,0 +1,472 @@
+[
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "address",
+				"name": "seller",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requested_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "wei_offered",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "slot_number",
+				"type": "uint256"
+			}
+		],
+		"name": "BuyOfferAccepted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requested_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "wei_offered",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "expires_at",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "slot_number",
+				"type": "uint256"
+			}
+		],
+		"name": "BuyOfferMade",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "requested_amount",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "wei_offered",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "slot_number",
+				"type": "uint256"
+			}
+		],
+		"name": "BuyOfferWithdrawn",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "minter",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "preminted_at",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "fixed_info_1",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "fixed_info_2",
+				"type": "uint256"
+			}
+		],
+		"name": "Minted",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "updatable_info_1",
+				"type": "uint256"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "updatable_info_2",
+				"type": "uint256"
+			}
+		],
+		"name": "NftInfoUpdated",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "from",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "Transferred",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "offer_slot",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "requested_amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "wei_offered",
+				"type": "uint256"
+			}
+		],
+		"name": "accept_buy_offer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "owner",
+				"type": "address"
+			}
+		],
+		"name": "get_balance_from",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			}
+		],
+		"name": "get_next_available_buy_offer_slot",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "slot_number",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "available_at",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			}
+		],
+		"name": "get_nft_info",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "minter",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "minted_at",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "preminted_at",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fixed_info_1",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fixed_info_2",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "updatable_info_1",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "updatable_info_2",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "requested_amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "offer_slot",
+				"type": "uint256"
+			}
+		],
+		"name": "make_buy_offer",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fixed_info_1",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "fixed_info_2",
+				"type": "uint256"
+			}
+		],
+		"name": "mint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_minters_address_concatenated_with_the_sha256_of_the_nft_data",
+				"type": "uint256"
+			}
+		],
+		"name": "pre_mint",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			},
+			{
+				"internalType": "address",
+				"name": "to",
+				"type": "address"
+			}
+		],
+		"name": "transfer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "updatable_info_1",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "updatable_info_2",
+				"type": "uint256"
+			}
+		],
+		"name": "update_nft_info",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "sha256_of_the_nft_data",
+				"type": "uint256"
+			},
+			{
+				"internalType": "uint256",
+				"name": "offer_slot",
+				"type": "uint256"
+			}
+		],
+		"name": "withdraw_buy_offer",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	}
+]

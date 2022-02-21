@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>View Creator</title>
+    <link rel="stylesheet" href="./css/view-creator.css">
+</head>
+
+<body>
+    <div id="main">
+        <h1>View Creator</h1>
+        <div class="flow-item" id="flow-initial">
+            <textarea placeholder="> Create my first View" id="inputbox-view-data" onkeydown="enable_tab(this,event)"
+                onkeyup="on_view_data_changed()"></textarea>
+            <button id="button-publish" onclick="publish();void(0)">Publish</button>
+        </div>
+        <div class="flow-item" id="flow-publish">
+            <h3>In order to securely publish this View, we will first issue a premint transaction followed by a mint
+                transaction, and then publish the actual View data on IPFS.</h3>
+            <button id="button-back" onclick="load_initial_flow()">Back</button>
+            <button id="button-continue" onclick="premint()">Continue</button>
+        </div>
+        <div class="flow-item" id="flow-premint">
+            <h3>Issuing a premint transaction...</h3>
+            <h3>You must continue by approving or rejecting this transaction on MetaMask!</h3>
+            <img class="loading-animation" src="./img/loading-animation.gif" alt="Waiting for MetaMask" />
+            <h5>
+                network: <span id="label_network_name"></span><br />
+                contract: <span id="label_contract"></span><br />
+                wallet address: <span id="label_wallet_address"></span><br />
+                view hash: <span id="label_view_hash"></span><br />
+                premint value: <span id="label_premint_value"></span>
+            </h5>
+        </div>
+        <div class="flow-item" id="flow-waiting-premint-finality">
+            <h3>Waiting for block finality before issuing the mint transaction...</h3>
+            <img class="loading-animation" src="./img/loading-animation.gif"
+                alt="Waiting for finality of the premint transaction" />
+            <h5>
+                premint transaction hash: <span id="label_premint_transaction_hash"></span><br />
+                premint transaction block number: <span id="label_premint_transaction_block_number"></span><br />
+                confirmations: <span id="label_premint_confirmations"></span>
+            </h5>
+        </div>
+        <div class="flow-item" id="flow-mint">
+            <h3>Achieved finality for the premint transaction. Now issuing the mint transaction...</h3>
+            <h3>You must continue by approving this transaction on MetaMask!</h3>
+            <img class="loading-animation" src="./img/loading-animation.gif" alt="Waiting for MetaMask" />
+            <h5>
+                mint value: <span id="label_mint_value"></span>
+            </h5>
+        </div>
+        <div class="flow-item" id="flow-mint-succeed">
+            <h3>You successfully created an NFT of your View!</h3>
+            <h3>But wait! The actual View data still needs to be made accessible to the world. We need to publish it on
+                IPFS now.</h3>
+            <h3>BTW, we will try to host your View data on IPFS as a free service for now, but <strong>you are the one
+                    responsible for making your View data available on IPFS</strong>.</h3>
+            <button id="button-continue" onclick="publish_view_data_on_ipfs()">Publish on IPFS</button>
+            <h5>
+                mint transaction hash: <span id="label_mint_transaction_hash"></span>
+            </h5>
+        </div>
+        <div class="flow-item" id="flow-publishing-on-ipfs">
+            <h3>You are almost there! We are going to publish the actual View data on IPFS now...</h3>
+            <img class="loading-animation" src="./img/loading-animation.gif" alt="Publishing View data on IPFS" />
+        </div>
+        <div class="flow-item" id="flow-congratz">
+            <h3>All done ✔ You successfully created an NFT of your View and the View's data has been published on IPFS!
+            </h3>
+            <h3>But do not forget! We can *not* guarantee we will be serving your View on IPFS indefinetely. You are
+                encouraged to serve it yourself or use a paid IPFS hosting service.</h3>
+            <button onclick="download_receipt();">Download receipt</button>
+            <button onclick="window.location.reload();">Create another View</button>
+            <h5>
+                Link to the View's data at IPFS: <span id="label_ipfs_url"></span>
+            </h5>
+        </div>
+        <p id="label-view-hash">Current SHA-256 hash of the View: </p>
+    </div>
+</body>
+
+</html>
+<script>
+
+    // Constant vars
+    const ETHEREUM_SNFT_CONTRACT_ADDRESS = '0xD3A63a423dBd9005A2eaa9CE74DDF39802Cf161d';
+    const AVALANCHE_SNFT_CONTRACT_ADDRESS = '0x5606f4cd58071c5eBce55B801730e146Bd1D2a71';
+    const NIRVANA_PROTOCOL_SHA256_HASH = '0x04399a39ab5ce9f24ee374d07d0ae3b2e186213c1bebdd361c1fb7124799c270';
+    const BLOCK_CONFIRMATIONS_TO_ASSUME_FINALITY = 6;
+    const MINT_TRANSACTION_FIXED_INFO_1 = NIRVANA_PROTOCOL_SHA256_HASH; // Signature to make views discoverable.
+    const MINT_TRANSACTION_FIXED_INFO_2 = 0;
+    const PUBLISH_ON_IPFS_URL = '/api/publish-on-ipfs';
+
+    // A global object which occasionally will be filled up with values representing a receipt of the whole operation (preminting + minting + uploading on ipfs).
+    window.receipt = {
+        creator: 'view-creator',
+        network_name: null,
+        contract_address: null,
+        wallet_address: null,
+        premint_value: null,
+        premint_transaction_hash: null,
+        premint_transaction_timestamp: null,
+        mint_value: null,
+        mint_fixed_info_1: MINT_TRANSACTION_FIXED_INFO_1,
+        mint_fixed_info_2: MINT_TRANSACTION_FIXED_INFO_2,
+        mint_transaction_hash: null,
+        mint_transaction_timestamp: null,
+        ipfs_url: null,
+        view_data_as_base64: null
+    };
+
+
+    // Helper functions
+
+    const ETHEREUM_MAINNET_KNOWN_BLOCK = 14122364;
+    const ETHEREUM_MAINNET_EXPECTED_HASH_FROM_KNOWN_BLOCK = '0xedfa8d471ce60c89156c9f2456ae028257a29ba4a5c578b00e259460693d3a42';
+    const AVALANCHE_C_CHAIN_KNOWN_BLOCK = 10358172;
+    const AVALANCHE_C_CHAIN_EXPECTED_HASH_FROM_KNOWN_BLOCK = '0xd67c512a5fecf18345e3567f398c12b7dbfbdcc00fc3dc45eab3289611d71df1';
+    async function get_network_name(provider) {
+        try {
+            const known_ethereum_block = await provider.getBlock(ETHEREUM_MAINNET_KNOWN_BLOCK);
+            if (known_ethereum_block && known_ethereum_block.hash.toLowerCase() == ETHEREUM_MAINNET_EXPECTED_HASH_FROM_KNOWN_BLOCK.toLowerCase()) return 'ethereum-mainnet';
+        }
+        catch (e) { }
+
+        try {
+            const known_avalanche_block = await provider.getBlock(AVALANCHE_C_CHAIN_KNOWN_BLOCK);
+            if (known_avalanche_block && known_avalanche_block.hash.toLowerCase() == AVALANCHE_C_CHAIN_EXPECTED_HASH_FROM_KNOWN_BLOCK) return 'avalanche-c-chain';
+        }
+        catch (e) { }
+        return 'unknown';
+    }
+
+    async function get_premint_value_as_hex_string(wallet_address_as_hex_string, view_hash_as_byte_array) {
+        const wallet_address_as_byte_array = window.ethers.utils.arrayify(wallet_address_as_hex_string);
+        const wallet_address_concatenated_with_view_hash_as_byte_array = window.ethers.utils.concat([wallet_address_as_byte_array, view_hash_as_byte_array]);
+        const premint_value_as_buffer = await window.crypto.subtle.digest('SHA-256', wallet_address_concatenated_with_view_hash_as_byte_array.buffer);
+        const premint_value_as_byte_array = new Uint8Array(premint_value_as_buffer);
+        const premint_value_as_hex_string = window.ethers.utils.hexlify(premint_value_as_byte_array);
+        return premint_value_as_hex_string;
+    }
+
+    async function get_view_hash_as_byte_array() {
+        const view_as_string = document.getElementById('inputbox-view-data').value;
+        const view_as_byte_array = new TextEncoder().encode(view_as_string);
+        const view_hash_as_buffer = await window.crypto.subtle.digest('SHA-256', view_as_byte_array);
+        const view_hash_as_byte_array = new Uint8Array(view_hash_as_buffer);
+        return view_hash_as_byte_array;
+    }
+
+    async function on_view_data_changed() {
+        const view_hash_as_byte_array = await get_view_hash_as_byte_array();
+        const view_hash_as_hex_string = window.ethers.utils.hexlify(view_hash_as_byte_array);
+        document.getElementById('label-view-hash').innerHTML = `Current SHA-256 hash of the View:  ${view_hash_as_hex_string}`;
+    }
+
+    const TAB_KEY = 9;
+    function enable_tab(object, event) {
+        if (event.shiftKey || event.ctrlKey || event.altKey) return true;
+        if (event.keyCode == TAB_KEY) {
+            event.preventDefault();
+
+            const offset_start = object.selectionStart;
+            const offset_end = object.selectionEnd;
+            object.value = object.value.substring(0, offset_start) + "\t" + object.value.substr(offset_end);
+            object.setSelectionRange(offset_start + 1, offset_start + 1);
+        }
+    }
+
+    async function download_receipt() {
+        const anchor = document.createElement('a');
+        anchor.setAttribute('href', window.URL.createObjectURL(new Blob([JSON.stringify(window.receipt)], { type: 'application/json' })));
+        anchor.setAttribute('download', `view_${window.receipt.mint_value}.json`);
+        anchor.click();
+        anchor.remove();
+    }
+
+
+    // Main code
+
+    function load_initial_flow() {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-initial').style.display = 'block';
+    };
+
+    function publish() {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-publish').style.display = 'block';
+    }
+
+    async function premint() {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-premint').style.display = 'block';
+
+        try {
+            let contract_address;
+            const network_name = await get_network_name(window.provider);
+            switch (network_name) {
+                case 'ethereum-mainnet':
+                    contract_address = ETHEREUM_SNFT_CONTRACT_ADDRESS;
+                    break;
+                case 'avalanche-c-chain':
+                    contract_address = AVALANCHE_SNFT_CONTRACT_ADDRESS;
+                    break;
+                default:
+                    throw { code: 'error', message: 'Not connected to a valid blockchain network. Only Avalanche C-Chain or Ethereum Mainnet supported for now.' };
+            }
+            window.receipt.network_name = document.getElementById('label_network_name').innerText = network_name;
+            window.receipt.contract_address = document.getElementById('label_contract').innerText = contract_address;
+
+            window.snft_address = ethers.utils.getAddress(window.receipt.contract_address);
+            window.snft_contract = new ethers.Contract(window.snft_address, window.contract_abi, window.provider);
+            window.snft_contract_with_signer = await window.snft_contract.connect(window.signer);
+
+            const wallet_address_as_hex_string = await window.signer.getAddress();
+            window.receipt.wallet_address = document.getElementById('label_wallet_address').innerText = wallet_address_as_hex_string;
+
+            const view_hash_as_byte_array = await get_view_hash_as_byte_array();
+            document.getElementById('label_view_hash').innerText = window.ethers.utils.hexlify(view_hash_as_byte_array);
+
+            const premint_value_as_hex_string = await get_premint_value_as_hex_string(wallet_address_as_hex_string, view_hash_as_byte_array);
+            window.receipt.premint_value = document.getElementById('label_premint_value').innerText = premint_value_as_hex_string;
+
+            const premint_transaction_response = await window.snft_contract_with_signer.pre_mint(premint_value_as_hex_string);
+
+            wait_premint_finality_then_issue_mint(premint_transaction_response);
+
+        } catch (e) {
+            alert(`Error ${e.code}: ${e.message}`);
+            load_initial_flow();
+        }
+    }
+
+    async function wait_premint_finality_then_issue_mint(premint_transaction_response) {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-waiting-premint-finality').style.display = 'block';
+
+        window.receipt.premint_transaction_hash = document.getElementById('label_premint_transaction_hash').innerText = premint_transaction_response.hash;
+        document.getElementById('label_premint_transaction_block_number').innerText = premint_transaction_response.blockNumber;
+
+        const premint_transaction_receipt = await premint_transaction_response.wait(BLOCK_CONFIRMATIONS_TO_ASSUME_FINALITY);
+        window.receipt.premint_transaction_timestamp = premint_transaction_receipt.timestamp;
+
+        mint(premint_transaction_receipt);
+    }
+
+    async function mint(premint_transaction_receipt) {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-mint').style.display = 'block';
+
+        try {
+            const view_hash_as_byte_array = await get_view_hash_as_byte_array();
+            const mint_value_as_hex_string = window.ethers.utils.hexlify(view_hash_as_byte_array);
+            window.receipt.mint_value = document.getElementById('label_mint_value').innerText = mint_value_as_hex_string;
+
+            window.mint_transaction_response = await window.snft_contract_with_signer.mint(mint_value_as_hex_string, MINT_TRANSACTION_FIXED_INFO_1, MINT_TRANSACTION_FIXED_INFO_2);
+
+            on_mint_succeed();
+
+        } catch (e) {
+            let try_again = confirm(`Error ${e.code}: ${e.message}\n\nYou preminted this View already. Do you want to try to mint it again?`);
+            if (try_again) { mint(premint_transaction_receipt); }
+        }
+    }
+
+    async function on_mint_succeed() {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-mint-succeed').style.display = 'block';
+
+        window.receipt.mint_transaction_hash = document.getElementById('label_mint_transaction_hash').innerText = window.mint_transaction_response.hash;
+        window.receipt.mint_transaction_timestamp = window.mint_transaction_response.timestamp;
+    }
+
+    async function publish_view_data_on_ipfs() {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-publish-on-ipfs').style.display = 'block';
+
+        const view_as_string = document.getElementById('inputbox-view-data').value;
+        const view_as_byte_array = new TextEncoder().encode(view_as_string);
+        const view_as_base64 = window.ethers.utils.base64.encode(view_as_byte_array);
+        window.receipt.view_data_as_base64 = view_as_base64;
+
+        const view_hash_as_byte_array = await get_view_hash_as_byte_array();
+        const mint_value_as_hex_string = window.ethers.utils.hexlify(view_hash_as_byte_array);
+
+        try {
+            const input_as_json = {
+                mint_transaction_response: window.mint_transaction_response,
+                mint_value_as_hex_string,
+                data_as_base64: view_as_base64
+            };
+
+            const fetch_result = await fetch(PUBLISH_ON_IPFS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(input_as_json)
+            });
+            const server_response = await fetch_result.json();
+
+            if (!server_response.ipfs_url) throw { message: 'Server down!' };
+
+            window.receipt.ipfs_url = server_response.ipfs_url;
+
+            congratz(server_response);
+        }
+        catch (e) {
+            let try_again = confirm(`Error ${e.code}: ${e.message}\n\nYou minted this View already. Do you want to try to use our server to publish it on IPFS again?`);
+            if (try_again) { publish_view_data_on_ipfs(); }
+        }
+    }
+
+    async function congratz(server_response) {
+        document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
+        document.getElementById('flow-congratz').style.display = 'block';
+
+        document.getElementById('label_ipfs_url').innerText = server_response.ipfs_url;
+    }
+
+
+    window.onload = load_initial_flow;
+
+
+</script>
+<script type="module">
+
+    // This segment initiates the connection to MetaMask.
+    // Bind the following vars to the window object so they can be accessed from outside by other script tags, which wouldn't happen otherwise.
+
+
+    import { ethers } from "./js/ethers-5.2.esm.min.js";
+    window.ethers = ethers;
+
+
+    if (!window.ethereum) alert('MetaMask is missing... Install MetaMask and reload this page.');
+
+    window.ethereum.enable();
+
+    // A Web3Provider wraps a standard Web3 provider, which is
+    // what MetaMask injects as window.ethereum into each page
+    window.provider = new ethers.providers.Web3Provider(window.ethereum);
+
+    // The MetaMask plugin also allows signing transactions to
+    // send ether and pay to change state within the blockchain.
+    // For this, you need the account signer...
+    window.signer = window.provider.getSigner();
+
+    import snft_abi from "./SNFT.abi.json" assert { type: "json" };
+    window.contract_abi = snft_abi;
+
+
+
+</script>
