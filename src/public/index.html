@@ -274,7 +274,7 @@
 
     async function publish_view_data_on_ipfs() {
         document.querySelectorAll('.flow-item').forEach(item => item.style.display = 'none');
-        document.getElementById('flow-publish-on-ipfs').style.display = 'block';
+        document.getElementById('flow-publishing-on-ipfs').style.display = 'block';
 
         const view_as_string = document.getElementById('inputbox-view-data').value;
         const view_as_byte_array = new TextEncoder().encode(view_as_string);
